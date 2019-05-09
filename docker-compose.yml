@@ -1,0 +1,95 @@
+version: '2'
+services:
+    nginx:
+        build:
+            context: ./build/nginx
+        container_name: nginx
+        ports:
+            - "8081:8081"  #php54
+            - "8082:8082" #php56
+            - "8083:8083" #php71
+        tty : true
+        volumes:
+            - ./conf/nginx:/etc/nginx/conf.d/
+            - ./www:/data/http/:rw
+            - ./log/nginx:/var/log/nginx/:rw
+        links:
+            - php54:fpm54
+            - php56:fpm56
+            - php71:fpm71
+
+    php54:
+        build:
+            context: ./build/php54
+        container_name: php54
+        expose:
+            - "9000"
+        volumes:
+            - ./conf/php54/:/usr/local/php54/etc/:rw
+            - ./www/:/data/http:rw
+        tty: true
+        links:
+            - redis:redis
+            - mysql:mysql
+
+    php56:
+        build:
+            context: ./build/php56
+        container_name: php56
+        expose:
+            - "9000"
+        volumes:
+            - ./conf/php56/:/usr/local/php56/etc/:rw
+            - ./www/:/data/http:rw
+        links:
+            - redis:redis
+            - mysql:mysql57
+
+    php71:
+        build:
+            context: ./build/php71
+        container_name: php71
+        expose:
+            - "9000"
+        volumes:
+            - ./conf/php71/:/usr/local/php71/etc/:rw
+            - ./www/:/data/http:rw
+        links:
+            - redis:redis
+            - mysql:mysql57
+        ports:
+            - "8088:8088"
+
+    sd:
+        build:
+            context: ./build/sd
+        container_name: sd
+        volumes:
+            - ./www:/data/http/:rw
+        links:
+            - redis:redis
+            - mysql:mysql57
+        ports:
+            - "8888:80"
+        tty: true
+    redis:
+      container_name: redis
+      image: redis:3.2.10
+
+    mysql:
+        container_name: mysql57
+        image: mysql:5.7
+        environment:
+            MYSQL_ROOT_PASSWORD: "root"
+            MYSQL_USER: "ghhuang"
+            MYSQL_PASSWORD: "ghhuang"
+            MYSQL_DATABASE: "test"
+        ports:
+            - "13306:3306"
+
+
+
+
+
+
+
